@@ -1,11 +1,9 @@
 name: WildFly Quickstarts Kubernetes CI
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
   push:
     # kubernetes-testing is a temporary entry
     #branches: [main, kubernetes-testing]
-    branches: [main]
+    branches: [WFLY-19978]
 env:
   KUBERNETES_CORE_DIRECTORY: .github/workflows/scripts/kubernetes/core
   KUBERNETES_QS_OVERRIDES_DIRECTORY: .github/workflows/scripts/kubernetes/overrides
@@ -48,7 +46,7 @@ jobs:
         ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         ALL_BASE_DIRECTORIES: ${{ steps.get-top-level-directories.outputs.top_dirs }}
       run: |
-        # set -x
+        set -x
         
         ##################################################
         # Look for all the changed quickstarts
@@ -188,11 +186,11 @@ jobs:
         minikube version: 'v1.33.0'
         kubernetes version: 'v1.30.0'
         github token: ${{ secrets.GITHUB_TOKEN }}
-        start args: "--memory='4gb' --cpus='2'"
+        start args: "--memory='6gb' --cpus='4' --wait-timeout='10m'"
     - name: Enable minikube registry
       run: |
         minikube addons enable registry
-        kubectl port-forward --namespace kube-system service/registry 5000:80 & 
+        kubectl port-forward --namespace kube-system service/registry 5000:80 &
     - uses: azure/setup-helm@v4.2.0
       with:
         version: v3.14.2
@@ -211,6 +209,7 @@ jobs:
         java-version: '17'
         cache: 'maven'
         cache-dependency-path: '${{ matrix.quickstart }}/**/pom.xml'
+
     - name: Run the Quickstart tests
       shell: bash
       run: |
